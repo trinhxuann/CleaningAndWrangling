@@ -25,14 +25,50 @@ lobster_abundance <- read_csv("https://portal.edirepository.org/nis/dataviewer?p
 lobster_traps <- read_csv("https://portal.edirepository.org/nis/dataviewer?packageid=knb-lter-sbc.77.8&entityid=66dd61c75bda17c23a3bce458c56ed84")
 ```
 
-## Exercise 1
+## Exercise 1: lobster abundance
+```{r}
+lobster_abundance <- lobster_abundance %>% 
+  mutate(SIZE_MM = na_if(SIZE_MM, -99999))
+```
 
-## Exercise 2
+## Exercise 2: Create a subset with the data for the lobsters at Arroyo Quemado (AQUE) that have a carapace length greater than 70 mm.
+```{r}
+lobster_abundance %>% 
+  filter(SITE == "AQUE", SIZE_MM > 70)
+```
 
-## Exercise 3
 
-## Exercise 4
+## Exercise 3: Create a subset with the traps’ information at all sites where abundance data is not NA. Note that you first have to identify which are these sites.
+
+```{r}
+lobster_abundance %>% 
+  filter(!is.na(SITE))
+```
+
+
+## Exercise 4: For each data frame, calculate the total count and total traps by site and year (i.e. total traps for every combination of site and year). Store these summary statistics in separate data frames.
+```{r}
+lobster_abundance_total <- lobster_abundance %>% 
+  filter(!is.na(SITE)) %>% 
+  group_by(SITE, YEAR) %>% 
+  summarise(totalCount = sum(COUNT))
+
+lobster_traps_total <- lobster_traps %>% 
+  filter(!is.na(SITE)) %>% 
+  group_by(SITE, YEAR) %>% 
+  summarise(totalTraps = sum(TRAPS))
+```
+
 
 ## Exercise 5
+```{r}
+full_join(lobster_abundance_total, lobster_traps_total, by = c("SITE", "YEAR"))
+```
 
-## Exercise 6
+
+## Exercise 6: The sites IVEE and NAPL are marine protected areas (MPAs). Read the documentation about the case_when() function and use it to add this designation to your data set.
+
+```{r}
+full_join(lobster_abundance_total, lobster_traps_total, by = c("SITE", "YEAR")) %>% 
+  mutate(MPA = case_when(SITE %in% c("IVEE", "NAPL") ~ "MPA"))
+```
